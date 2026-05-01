@@ -1,3 +1,6 @@
+// connect to mongo atlas
+
+
 import mongoose from 'mongoose';
 import { DB_NAME } from '../constants.js';
 
