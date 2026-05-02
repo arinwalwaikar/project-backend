@@ -1,4 +1,4 @@
-//api errpor class to handle all the errors in the application
+//api errpor class to handle all the errors in the applications
 
 class ApiError extends Error {
     constructor(

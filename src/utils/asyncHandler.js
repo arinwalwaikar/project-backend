@@ -1,4 +1,4 @@
-//async handler to handle all the async functions in the application
+//async handler to handle all the async functions in the applications
 
 const asyncHandler = (requestHandler) => {
     return async (req, res, next) => {
