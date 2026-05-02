@@ -1,4 +1,4 @@
-//api response class to handle all the responses in the application
+//api response class to handle all the responses in the  //
 
 class ApiResponse {
     constructor(statusCode,data,message="Sucess"){
