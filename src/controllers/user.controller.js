@@ -4,6 +4,13 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+};
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -114,10 +121,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
     // send cookie
-    const options = {
-        httpOnly: true,
-        secure: true
-    }
+    const options = cookieOptions;
 
     return res
         .status(200)
@@ -142,8 +146,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined
+            $unset: {
+                refreshToken: 1
             }
         },
         {
@@ -151,10 +155,7 @@ const logoutUser = asyncHandler(async (req, res) => {
         }
     )
 
-    const options = {
-        httpOnly: true,
-        secure: true,
-    }
+    const options = cookieOptions;
 
     return res
         .status(200)
@@ -163,9 +164,8 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, null, "User logged out successfully"))
 })
 
-const refreshAccessToken = asyncHandler(async (req, res)
-    => {
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (!incomingRefreshToken) {
         throw new ApiError(400, "Unauthorized request");
@@ -187,10 +187,7 @@ const refreshAccessToken = asyncHandler(async (req, res)
             throw new ApiError(401, "Refresh token is expired or used");
         }
 
-        const options = {
-            httpOnly: true,
-            secure: true,
-        }
+        const options = cookieOptions;
         const { accessToken, newRefreshToken } = await generateAccessAndRefreshToken(user._id);
 
         return res
@@ -256,8 +253,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, user, "Account details updated successfully"))
 })
 
-const updateUserAvatar = asyncHandler(async (req, res)
-    => {
+const updateUserAvatar = asyncHandler(async (req, res) => {
     const avatar = await uploadOnCloudinary(avatarLocalPath);
 
     if (!avatar.url) {
@@ -279,8 +275,7 @@ const updateUserAvatar = asyncHandler(async (req, res)
         .json(new ApiResponse(200, avatar.url, "Avatar updated successfully"))
 })
 
-const updateCoverImage = asyncHandler(async (req, res)
-    => {
+const updateCoverImage = asyncHandler(async (req, res) => {
     const coverImageLocalPath = req.file?.path
 
     if (!coverImageLocalPath) {
